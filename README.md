@@ -12,7 +12,7 @@ them into a PostgreSQL database.
 
 ## Usage
 ```
-docker-compose up
+docker build && docker-compose up
 ```
 Go to `localhost:5001` on you brower to show result page and `localhost:5000` to show vote page
 

@@ -19,3 +19,7 @@ Go to `localhost:5001` on you brower to show result page and `localhost:5000` to
 ## Results screen
 ![vote](./images/vote.png)
 ![result](./images/result.png)
+
+
+## Automatics tests
+![Marvin](./images/tests.png)

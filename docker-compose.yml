@@ -1,0 +1,83 @@
+version: '3'
+
+services:
+  poll:
+    build: ./poll
+    restart: always
+    networks:
+      - poll-tier
+    depends_on:
+      - redis
+    ports:
+      - "5000:80"
+    environment:
+      - REDIS_HOST=redis
+      - FLASK_ENV=production
+      - FLASK_APP=app.py
+      - OPTION_A=Ansible
+      - OPTION_B=Chef
+      - OPTION_C=Puppet
+      - OPTION_D=SaltStack
+  db:
+    image: postgres:16
+    restart: on-failure
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - result-tier
+      - back-tier
+  result:
+    build: ./result
+    depends_on:
+      - db
+    restart: on-failure
+    networks:
+      - result-tier
+    ports:
+      - "5001:80"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+  redis:
+    image: redis:7
+    expose:
+      - "6379"
+    ports:
+      - "6379:6379"
+    networks:
+      - poll-tier
+      - back-tier
+    restart: on-failure
+  worker:
+    build: ./worker
+    depends_on:
+      - redis
+      - db
+    restart: always
+    networks:
+      - back-tier
+    environment:
+      - REDIS_HOST=redis
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+volumes:
+  db-data:
+networks:
+  poll-tier:
+    driver: bridge
+  result-tier:
+    driver: bridge
+  back-tier:
+    driver: bridge
